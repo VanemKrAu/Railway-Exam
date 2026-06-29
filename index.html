@@ -827,6 +827,47 @@ function loadTags() {
 function saveTags() { try { localStorage.setItem('rail4_tags', JSON.stringify(tags)); } catch(e) {} }
 loadTags();
 
+// ==================== 会话记忆 ====================
+let _lastScrollSave = 0;
+let _restoringScroll = false;
+function saveSession() {
+  if (_restoringScroll) return;
+  try {
+    var d = { c: currentCourse, t: currentType, y: window.scrollY, ts: Date.now() };
+    localStorage.setItem("rail4_pos", JSON.stringify(d));
+  } catch(e) {}
+}
+function restoreSession() {
+  try {
+    var s = JSON.parse(localStorage.getItem("rail4_pos") || "null");
+    if (!s || !s.c || !courses[s.c]) return null;
+    var t = s.t && courses[s.c].types.includes(s.t) ? s.t : courses[s.c].types[0];
+    if (s.c !== currentCourse || t !== currentType) {
+      currentCourse = s.c; currentType = t;
+      document.querySelectorAll(".course-tab").forEach(function(b) { b.classList.toggle("active", b.dataset.course === s.c); });
+      return "reload";
+    }
+    return "ok";
+  } catch(e) { return null; }
+}
+function scrollToSaved() {
+  try {
+    var s = JSON.parse(localStorage.getItem("rail4_pos") || "null");
+    if (!s || !s.y) return;
+    _restoringScroll = true;
+    var attempts = 0;
+    (function tryScroll() {
+      window.scrollTo(0, s.y);
+      attempts++;
+      if (attempts < 10 && Math.abs(window.scrollY - s.y) > 200) {
+        setTimeout(tryScroll, 300);
+      } else {
+        setTimeout(function() { _restoringScroll = false; }, 500);
+      }
+    })();
+  } catch(e) {}
+}
+
 function escapeHtml(s) {
   return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 }
@@ -1307,7 +1348,31 @@ function updateStats() {
 
 document.addEventListener('keydown', (e) => { if (e.key === 'a' && e.ctrlKey && e.shiftKey) { e.preventDefault();toggleAllAnswers(); } });
 
-renderAll();
+
+// ==================== 切换时自动保存 ====================
+(function(){
+  var _sc = switchCourse;
+  switchCourse = function(c) { _sc(c); saveSession(); };
+  var _st = switchType;
+  switchType = function(t) { _st(t); saveSession(); };
+})();
+window.addEventListener("scroll", function() {
+  var n = Date.now();
+  if (n - _lastScrollSave > 2000) { _lastScrollSave = n; saveSession(); }
+}, { passive: true });
+window.addEventListener("beforeunload", saveSession);
+window.addEventListener("pagehide", saveSession);
+
+// ==================== 恢复上次位置 ====================
+var _restoreResult = restoreSession();
+if (_restoreResult === "reload") {
+  renderAll();
+  setTimeout(scrollToSaved, 200);
+} else {
+
+  renderAll();
+  setTimeout(scrollToSaved, 200);
+}
 </script>
 </body>
 </html>
