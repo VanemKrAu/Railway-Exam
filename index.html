@@ -1365,7 +1365,7 @@ document.addEventListener('keydown', (e) => { if (e.key === 'a' && e.ctrlKey && 
 })();
 window.addEventListener("scroll", function() {
   var n = Date.now();
-  if (n - _lastScrollSave > 2000) { _lastScrollSave = n; saveSession(); }
+  if (n - _lastScrollSave > 300) { _lastScrollSave = n; saveSession(); }
 }, { passive: true });
 window.addEventListener("beforeunload", saveSession);
 window.addEventListener("pagehide", saveSession);
