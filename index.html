@@ -853,19 +853,26 @@ function restoreSession() {
 function scrollToSaved() {
   try {
     var s = JSON.parse(localStorage.getItem("rail4_pos") || "null");
-    if (!s || !s.y) return;
+    if (!s || !s.y || s.y < 50) return;
     _restoringScroll = true;
-    var attempts = 0;
+    var started = Date.now();
+    var maxWait = 8000;
     (function tryScroll() {
       window.scrollTo(0, s.y);
-      attempts++;
-      if (attempts < 10 && Math.abs(window.scrollY - s.y) > 200) {
-        setTimeout(tryScroll, 300);
-      } else {
+      var diff = Math.abs(window.scrollY - s.y);
+      var tallEnough = document.body.scrollHeight > s.y;
+      if (tallEnough && diff < 100) {
         setTimeout(function() { _restoringScroll = false; }, 500);
+        return;
       }
+      if (Date.now() - started > maxWait) {
+        window.scrollTo(0, s.y);
+        _restoringScroll = false;
+        return;
+      }
+      setTimeout(tryScroll, 150);
     })();
-  } catch(e) {}
+  } catch(e) { _restoringScroll = false; }
 }
 
 function escapeHtml(s) {
