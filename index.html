@@ -1430,14 +1430,56 @@ if (_restoreResult === "reload") {
 }
 </script>
 <script>
+// ==================== Service Worker 注册 + 更新检测 ====================
 if ('serviceWorker' in navigator) {
-  window.addEventListener('load', function() {
-    navigator.serviceWorker.register('sw.js').then(function(reg) {
-      console.log('[SW] 注册成功, scope:', reg.scope);
-    }, function(err) {
-      console.log('[SW] 注册失败:', err);
+  var _swUpdated = false;
+
+  function showUpdateBanner() {
+    if (_swUpdated) return;
+    _swUpdated = true;
+    var banner = document.createElement('div');
+    banner.id = 'swUpdBanner';
+    banner.style.cssText = 'position:fixed;bottom:1rem;left:50%;transform:translateX(-50%);z-index:9999;' +
+      'background:var(--accent);color:#fff;padding:0.6rem 1.2rem;border-radius:var(--radius-sm);' +
+      'font-size:0.82rem;font-weight:600;cursor:pointer;box-shadow:0 4px 20px rgba(0,0,0,0.4);' +
+      'animation:fadeSlideIn 0.3s ease;display:flex;align-items:center;gap:0.6rem';
+    banner.innerHTML = '🔄 有新版本可用 <button style="padding:0.25rem 0.7rem;border-radius:4px;border:none;' +
+      'background:#fff;color:var(--accent);font-weight:700;cursor:pointer;font-size:0.75rem">立即刷新</button>';
+    banner.querySelector('button').onclick = function() { window.location.reload(); };
+    document.body.appendChild(banner);
+  }
+
+  navigator.serviceWorker.register('sw.js').then(function(reg) {
+    console.log('[SW] 注册成功, scope:', reg.scope);
+
+    // 检测 SW 更新
+    reg.addEventListener('updatefound', function() {
+      var newWorker = reg.installing;
+      if (!newWorker) return;
+      newWorker.addEventListener('statechange', function() {
+        if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+          console.log('[SW] 检测到新版本');
+          showUpdateBanner();
+        }
+      });
     });
+
+    // 接收 SW 发来的消息
+    navigator.serviceWorker.addEventListener('message', function(e) {
+      if (e.data && e.data.type === 'SW_UPDATED') {
+        console.log('[SW] 页面已更新到最新版本');
+      }
+    });
+  }, function(err) {
+    console.log('[SW] 注册失败:', err);
   });
+
+  // 定期检查更新（每30分钟）
+  setInterval(function() {
+    navigator.serviceWorker.getRegistration().then(function(reg) {
+      if (reg) reg.update();
+    });
+  }, 30 * 60 * 1000);
 }
 </script>
 </body>
