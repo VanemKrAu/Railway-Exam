@@ -65,17 +65,29 @@ self.addEventListener('fetch', (e) => {
 
                     // HTML 请求：对比新旧内容，变了才通知
                     if (isHTML) {
-                        caches.match(e.request).then((cachedResponse) => {
+                        // 同时尝试匹配 / 和 /index.html 两种 URL
+                        var matchUrl = new URL(e.request.url);
+                        var altUrl = matchUrl.pathname.endsWith('/')
+                            ? matchUrl.pathname + 'index.html'
+                            : matchUrl.pathname.replace(/\/index\.html$/, '/');
+                        var altRequest = new Request(altUrl, { method: 'GET' });
+
+                        Promise.all([
+                            caches.match(e.request),
+                            caches.match(altRequest)
+                        ]).then(function(results) {
+                            var cachedResponse = results[0] || results[1];
                             if (cachedResponse) {
                                 Promise.all([
                                     cachedResponse.text(),
                                     forCompare.text()
-                                ]).then(([oldText, newText]) => {
+                                ]).then(function(_ref) {
+                                    var oldText = _ref[0], newText = _ref[1];
                                     if (oldText !== newText) {
                                         console.log('[SW] 检测到 HTML 内容更新');
-                                        clients.matchAll({ type: 'window' }).then(clients => {
-                                            clients.forEach(client => {
-                                                client.postMessage({ type: 'SW_UPDATED' });
+                                        clients.matchAll({ type: 'window' }).then(function(cs) {
+                                            cs.forEach(function(c) {
+                                                c.postMessage({ type: 'SW_UPDATED' });
                                             });
                                         });
                                     }
