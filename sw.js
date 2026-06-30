@@ -60,39 +60,33 @@ self.addEventListener('fetch', (e) => {
         fetch(e.request)
             .then((networkResponse) => {
                 if (networkResponse && networkResponse.status === 200) {
-                    const responseClone = networkResponse.clone();
+                    const forCache = networkResponse.clone();
+                    const forCompare = networkResponse.clone();
 
                     // HTML 请求：对比新旧内容，变了才通知
                     if (isHTML) {
                         caches.match(e.request).then((cachedResponse) => {
-                            if (!cachedResponse) {
-                                // 无缓存，首次加载，正常存入
-                                caches.open(CACHE_NAME).then((cache) => {
-                                    cache.put(e.request, networkResponse.clone());
-                                });
-                                return;
-                            }
-                            // 对比新旧内容
-                            Promise.all([
-                                cachedResponse.text(),
-                                responseClone.text()
-                            ]).then(([oldText, newText]) => {
-                                if (oldText !== newText) {
-                                    console.log('[SW] 检测到 HTML 内容更新');
-                                    // 通知所有页面
-                                    clients.matchAll({ type: 'window' }).then(clients => {
-                                        clients.forEach(client => {
-                                            client.postMessage({ type: 'SW_UPDATED' });
+                            if (cachedResponse) {
+                                Promise.all([
+                                    cachedResponse.text(),
+                                    forCompare.text()
+                                ]).then(([oldText, newText]) => {
+                                    if (oldText !== newText) {
+                                        console.log('[SW] 检测到 HTML 内容更新');
+                                        clients.matchAll({ type: 'window' }).then(clients => {
+                                            clients.forEach(client => {
+                                                client.postMessage({ type: 'SW_UPDATED' });
+                                            });
                                         });
-                                    });
-                                }
-                            });
+                                    }
+                                });
+                            }
                         });
                     }
 
-                    // 存入缓存
+                    // 存入缓存（只存一次）
                     caches.open(CACHE_NAME).then((cache) => {
-                        cache.put(e.request, responseClone);
+                        cache.put(e.request, forCache);
 
                         // 自动清理不在白名单中的旧缓存
                         cache.keys().then((requests) => {
@@ -106,7 +100,6 @@ self.addEventListener('fetch', (e) => {
                                     CURRENT_VALID_ASSETS.indexOf(cleanPath) === -1 &&
                                     relativePath !== '/'
                                 ) {
-                                    console.log('[SW 自动大扫除] 清理过期缓存:', relativePath);
                                     cache.delete(storedRequest);
                                 }
                             });
@@ -116,7 +109,6 @@ self.addEventListener('fetch', (e) => {
                 return networkResponse;
             })
             .catch(() => {
-                // 网络不可用 → 从缓存加载
                 return caches.match(e.request);
             })
     );
