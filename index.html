@@ -1516,7 +1516,7 @@ if ('serviceWorker' in navigator) {
       if (reg) reg.update();
     });
     // 指纹探活：fetch 首页对比指纹，变了就弹遮罩
-    fetch('./').then(function(r) { return r.text(); }).then(function(html) {
+    fetch('./', { cache: 'no-cache' }).then(function(r) { return r.text(); }).then(function(html) {
       var m = html.match(/<style>([\s\S]*?)<\/style>/);
       var fp = html.length + '|' + (m ? m[1].length : 0);
       if (fp !== _pageFingerprint) {
