@@ -1437,16 +1437,19 @@ if ('serviceWorker' in navigator) {
   function showUpdateBanner() {
     if (_swUpdated) return;
     _swUpdated = true;
-    var banner = document.createElement('div');
-    banner.id = 'swUpdBanner';
-    banner.style.cssText = 'position:fixed;bottom:1rem;left:50%;transform:translateX(-50%);z-index:9999;' +
-      'background:var(--accent);color:#fff;padding:0.6rem 1.2rem;border-radius:var(--radius-sm);' +
-      'font-size:0.82rem;font-weight:600;cursor:pointer;box-shadow:0 4px 20px rgba(0,0,0,0.4);' +
-      'animation:fadeSlideIn 0.3s ease;display:flex;align-items:center;gap:0.6rem';
-    banner.innerHTML = '🔄 有新版本可用 <button style="padding:0.25rem 0.7rem;border-radius:4px;border:none;' +
-      'background:#fff;color:var(--accent);font-weight:700;cursor:pointer;font-size:0.75rem">立即刷新</button>';
-    banner.querySelector('button').onclick = function() { window.location.reload(); };
-    document.body.appendChild(banner);
+    var overlay = document.createElement('div');
+    overlay.id = 'swUpdOverlay';
+    overlay.style.cssText = 'position:fixed;inset:0;z-index:99999;background:var(--bg);' +
+      'display:flex;align-items:center;justify-content:center;flex-direction:column;gap:1.5rem;' +
+      'font-family:inherit;animation:fadeSlideIn 0.3s ease';
+    overlay.innerHTML = '<div style="font-size:3rem">🔄</div>' +
+      '<h2 style="font-size:1.2rem;color:var(--text);font-weight:700">检测到新版本</h2>' +
+      '<p style="font-size:0.85rem;color:var(--text2)">页面已更新，请刷新以获取最新内容</p>' +
+      '<button id="swUpdRefresh" style="padding:0.7rem 2.5rem;border-radius:var(--radius-sm);border:none;' +
+      'background:var(--accent);color:#fff;font-size:0.95rem;font-weight:700;cursor:pointer;' +
+      'font-family:inherit;transition:opacity 0.15s ease">立即刷新</button>';
+    document.body.appendChild(overlay);
+    document.getElementById('swUpdRefresh').onclick = function() { window.location.reload(); };
   }
 
   navigator.serviceWorker.register('sw.js').then(function(reg) {

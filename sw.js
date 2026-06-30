@@ -1,4 +1,4 @@
-const CACHE_NAME = 'railway-exam-cache-v4';
+const CACHE_NAME = 'railway-exam-cache-v5';
 
 const CURRENT_VALID_ASSETS = [
     'index.html',
