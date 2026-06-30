@@ -62,7 +62,6 @@ button,a,input,select,textarea{transition:background-color 0.15s ease,color 0.15
   background:var(--surface);
   border-bottom:1px solid rgba(128,128,128,0.08);
   padding:1.2rem 2rem;
-  position:sticky;top:0;z-index:100;
   backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);
   transition:background-color 0.35s ease,border-color 0.35s ease,box-shadow 0.35s ease;
 }
@@ -92,6 +91,14 @@ button,a,input,select,textarea{transition:background-color 0.15s ease,color 0.15
 .header .subtitle{
   font-size:0.7rem;color:var(--text2);font-weight:400;
   letter-spacing:0.04em;text-transform:uppercase;opacity:0.7;
+}
+
+/* ═══ 控件区 sticky 容器 ═══ */
+.sticky-controls{
+  position:sticky;top:0;z-index:100;
+  background:var(--bg);
+  padding-bottom:0.15rem;
+  transition:background-color 0.35s ease;
 }
 
 /* ═══ 课程Tab ═══ */
@@ -475,7 +482,7 @@ button,a,input,select,textarea{transition:background-color 0.15s ease,color 0.15
   body{background:#fff!important;color:#000!important;font-size:13px;transition:none}
   *{animation:none!important;transition:none!important}
   .q-card{background:#fff;border:1px solid #ddd;break-inside:avoid;box-shadow:none}
-  .header,.toolbar,.type-tabs,.course-tabs,.tag-btns,.stats-bar{display:none!important}
+  .header,.sticky-controls,.toolbar,.type-tabs,.course-tabs,.tag-btns,.stats-bar{display:none!important}
   .essay-content{display:block!important;border:1px solid #ddd}
   .blank.revealed{transform-origin:center;color:#000;border-color:#000}
   .judge-answer{display:inline-block!important}
@@ -552,6 +559,9 @@ button:focus-visible,.opt-item:focus-visible,.blank:focus-visible,.essay-toggle:
   </div>
 </div>
 
+<!-- 控件区（滚动时固定） -->
+<div class="sticky-controls">
+
 <!-- 课程Tab -->
 <div class="course-tabs" id="courseTabs">
   <button class="course-tab active" data-course="grind" onclick="switchCourse('grind')">钢轨打磨<span class="badge">冯娜娜</span></button>
@@ -586,6 +596,9 @@ button:focus-visible,.opt-item:focus-visible,.blank:focus-visible,.essay-toggle:
 
 <!-- 题型Tab -->
 <div class="type-tabs" id="typeTabs"></div>
+
+</div>
+<!-- /控件区 -->
 
 <!-- 题目区 -->
 <div class="main-container" id="mainContent"></div>
