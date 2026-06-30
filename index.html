@@ -167,7 +167,7 @@ button,a,input,select,textarea{transition:background-color 0.15s ease,color 0.15
 .toolbar button.active{background:var(--accent);color:#fff;border-color:var(--accent);font-weight:600;box-shadow:0 2px 8px color-mix(in srgb,var(--accent) 30%,transparent)}
 .toolbar button.active:hover{transform:translateY(-1px);box-shadow:0 4px 14px color-mix(in srgb,var(--accent) 40%,transparent)}
 .reset-wrap{position:relative;display:inline-flex}
-.reset-drop{display:none;position:absolute;top:100%;left:0;margin-top:4px;flex-direction:column;gap:2px;background:var(--card);border:1px solid var(--border);border-radius:var(--radius-sm);padding:4px;z-index:50;min-width:180px;box-shadow:0 8px 24px rgba(0,0,0,0.4)}
+.reset-drop{display:none;position:fixed;flex-direction:column;gap:2px;background:var(--card);border:1px solid var(--border);border-radius:var(--radius-sm);padding:4px;z-index:150;min-width:180px;box-shadow:0 8px 24px rgba(0,0,0,0.4)}
 .reset-drop button{display:block;width:100%;text-align:left;white-space:nowrap;padding:0.4rem 0.7rem;border-radius:4px;font-size:0.75rem}
 .reset-drop.show{display:flex}
 
@@ -1354,7 +1354,12 @@ function restoreOrder() {
 }
 
 function toggleResetMenu() {
-  document.getElementById('resetDrop').classList.toggle('show');
+  var drop = document.getElementById('resetDrop');
+  var btn = document.querySelector('#resetWrap button');
+  var rect = btn.getBoundingClientRect();
+  drop.style.top = (rect.bottom + 4) + 'px';
+  drop.style.left = rect.left + 'px';
+  drop.classList.toggle('show');
 }
 
 document.addEventListener('click', function(e) {
