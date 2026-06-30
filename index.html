@@ -844,6 +844,14 @@ function loadTags() {
 function saveTags() { try { localStorage.setItem('rail4_tags', JSON.stringify(tags)); } catch(e) {} }
 loadTags();
 
+function loadAllRevealed() {
+  try { allRevealed = localStorage.getItem('rail4_allRevealed') === '1'; } catch(e) {}
+}
+function saveAllRevealed() {
+  try { localStorage.setItem('rail4_allRevealed', allRevealed ? '1' : '0'); } catch(e) {}
+}
+loadAllRevealed();
+
 // ==================== 会话记忆 ====================
 let _lastScrollSave = 0;
 let _restoringScroll = false;
@@ -1260,6 +1268,7 @@ function renderAll() {
 
 function toggleAllAnswers() {
   allRevealed = !allRevealed;
+  saveAllRevealed();
   const btn = document.getElementById('btnToggleAll');
   if (allRevealed) { btn.textContent = '🔒 隐藏全部答案';btn.classList.add('active');revealAll(); }
   else { btn.textContent = '🔓 显示全部答案';btn.classList.remove('active');hideAll(); }
@@ -1330,6 +1339,7 @@ function resetAll() {
     }
     ['fill','judge','choice','essay','short','term','drawing'].forEach(t => { if (course[t]) course[t].forEach(q => delete tags[q.id]); });
     saveTags();allRevealed = false;filterReviewOnly = false;
+    saveAllRevealed();
     document.getElementById('btnToggleAll').textContent = '🔓 显示全部答案';
     document.getElementById('btnToggleAll').classList.remove('active');
     document.getElementById('btnFilterReview').textContent = '📌 只看需复习';
@@ -1347,6 +1357,7 @@ function restoreOrder() {
     }
   }
   allRevealed = false; filterReviewOnly = false;
+  saveAllRevealed();
   document.getElementById('btnToggleAll').textContent = '🔓 显示全部答案';
   document.getElementById('btnToggleAll').classList.remove('active');
   document.getElementById('btnFilterReview').textContent = '📌 只看需复习';
