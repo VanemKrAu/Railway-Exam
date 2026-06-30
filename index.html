@@ -865,6 +865,14 @@ function saveAllRevealed() {
 }
 loadAllRevealed();
 
+function syncRevealButton() {
+  var btn = document.getElementById('btnToggleAll');
+  if (!btn) return;
+  btn.textContent = allRevealed ? '🔒 隐藏全部答案' : '🔓 显示全部答案';
+  if (allRevealed) btn.classList.add('active');
+  else btn.classList.remove('active');
+}
+
 // ==================== 会话记忆 ====================
 let _lastScrollSave = 0;
 let _restoringScroll = false;
@@ -922,9 +930,7 @@ function switchCourse(course) {
   currentCourse = course;
   currentType = courses[course].types[0];
   filterReviewOnly = false;
-  document.getElementById('btnToggleAll').textContent = allRevealed ? '🔒 隐藏全部答案' : '🔓 显示全部答案';
-  if (allRevealed) document.getElementById('btnToggleAll').classList.add('active');
-  else document.getElementById('btnToggleAll').classList.remove('active');
+  syncRevealButton();
   document.getElementById('btnFilterReview').textContent = '📌 只看需复习';
   document.getElementById('btnFilterReview').classList.remove('active');
   document.querySelectorAll('.course-tab').forEach(b => {
@@ -1274,7 +1280,7 @@ function renderAll() {
     });
     html += '</div>';
   });
-  const doRender = () => { container.innerHTML = html; updateStats(); if (allRevealed) revealAll(); };
+  const doRender = () => { container.innerHTML = html; updateStats(); if (allRevealed) revealAll(); syncRevealButton(); };
   if (document.startViewTransition) { document.startViewTransition(() => doRender()); }
   else { doRender(); }
 }
@@ -1282,9 +1288,9 @@ function renderAll() {
 function toggleAllAnswers() {
   allRevealed = !allRevealed;
   saveAllRevealed();
-  const btn = document.getElementById('btnToggleAll');
-  if (allRevealed) { btn.textContent = '🔒 隐藏全部答案';btn.classList.add('active');revealAll(); }
-  else { btn.textContent = '🔓 显示全部答案';btn.classList.remove('active');hideAll(); }
+  syncRevealButton();
+  if (allRevealed) { revealAll(); }
+  else { hideAll(); }
 }
 
 function revealAll() {
@@ -1353,8 +1359,7 @@ function resetAll() {
     ['fill','judge','choice','essay','short','term','drawing'].forEach(t => { if (course[t]) course[t].forEach(q => delete tags[q.id]); });
     saveTags();allRevealed = false;filterReviewOnly = false;
     saveAllRevealed();
-    document.getElementById('btnToggleAll').textContent = '🔓 显示全部答案';
-    document.getElementById('btnToggleAll').classList.remove('active');
+    syncRevealButton();
     document.getElementById('btnFilterReview').textContent = '📌 只看需复习';
     document.getElementById('btnFilterReview').classList.remove('active');
     renderAll();
@@ -1371,8 +1376,7 @@ function restoreOrder() {
   }
   allRevealed = false; filterReviewOnly = false;
   saveAllRevealed();
-  document.getElementById('btnToggleAll').textContent = '🔓 显示全部答案';
-  document.getElementById('btnToggleAll').classList.remove('active');
+  syncRevealButton();
   document.getElementById('btnFilterReview').textContent = '📌 只看需复习';
   document.getElementById('btnFilterReview').classList.remove('active');
   renderAll();
