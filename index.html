@@ -507,6 +507,13 @@ button:focus-visible,.opt-item:focus-visible,.blank:focus-visible,.essay-toggle:
   @keyframes vtOut{to{opacity:0}}
   @keyframes vtIn{from{opacity:0}to{opacity:1}}
   </style>
+  <link rel="manifest" href="manifest.json">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="铁道机修自测">
+  <link rel="icon" type="image/svg+xml" href="icon.svg">
+  <link rel="icon" type="image/png" href="icon-512.png">
+  <link rel="apple-touch-icon" href="icon-512.png">
 </head>
 <body>
 
@@ -1379,6 +1386,17 @@ if (_restoreResult === "reload") {
 
   renderAll();
   setTimeout(scrollToSaved, 200);
+}
+</script>
+<script>
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', function() {
+    navigator.serviceWorker.register('sw.js').then(function(reg) {
+      console.log('[SW] 注册成功, scope:', reg.scope);
+    }, function(err) {
+      console.log('[SW] 注册失败:', err);
+    });
+  });
 }
 </script>
 </body>
