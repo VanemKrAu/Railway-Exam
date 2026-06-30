@@ -166,6 +166,10 @@ button,a,input,select,textarea{transition:background-color 0.15s ease,color 0.15
 .toolbar button:active{transform:scale(0.96)}
 .toolbar button.active{background:var(--accent);color:#fff;border-color:var(--accent);font-weight:600;box-shadow:0 2px 8px color-mix(in srgb,var(--accent) 30%,transparent)}
 .toolbar button.active:hover{transform:translateY(-1px);box-shadow:0 4px 14px color-mix(in srgb,var(--accent) 40%,transparent)}
+.reset-wrap{position:relative;display:inline-flex}
+.reset-drop{display:none;position:absolute;top:100%;left:0;margin-top:4px;flex-direction:column;gap:2px;background:var(--card);border:1px solid var(--border);border-radius:var(--radius-sm);padding:4px;z-index:50;min-width:180px;box-shadow:0 8px 24px rgba(0,0,0,0.4)}
+.reset-drop button{display:block;width:100%;text-align:left;white-space:nowrap;padding:0.4rem 0.7rem;border-radius:4px;font-size:0.75rem}
+.reset-drop.show{display:flex}
 
 /* ═══ 题型Tab ═══ */
 .type-tabs{
@@ -568,7 +572,13 @@ button:focus-visible,.opt-item:focus-visible,.blank:focus-visible,.essay-toggle:
 <div class="toolbar">
   <button onclick="toggleAllAnswers()" id="btnToggleAll">🔓 显示全部答案</button>
   <button onclick="shuffleCurrent()" aria-label="打乱当前题目顺序">🔀 打乱顺序</button>
-  <button onclick="resetAll()" aria-label="重置当前课程所有标记">🔄 全部重置</button>
+  <span class="reset-wrap" id="resetWrap">
+    <button onclick="toggleResetMenu()" aria-label="重置选项">🔄 全部重置 ▾</button>
+    <span class="reset-drop" id="resetDrop">
+      <button onclick="resetAll();toggleResetMenu()">🔄 全部重置（含标记）</button>
+      <button onclick="restoreOrder();toggleResetMenu()">📋 仅恢复题目顺序</button>
+    </span>
+  </span>
   <button onclick="filterReview()" id="btnFilterReview" aria-label="筛选显示需复习的题目">📌 只看需复习</button>
   <button onclick="exportTags()" aria-label="导出已标记题目">📤 导出标注</button>
   <button onclick="importTags()" aria-label="从其他设备导入标记">📥 导入标注</button>
@@ -1327,6 +1337,31 @@ function resetAll() {
     renderAll();
   }
 }
+
+function restoreOrder() {
+  const course = courses[currentCourse];
+  for (const [tk, origArr] of Object.entries(_coursesBackup[currentCourse])) {
+    if (Array.isArray(origArr) && tk !== 'types') {
+      course[tk] = JSON.parse(JSON.stringify(origArr));
+    }
+  }
+  allRevealed = false; filterReviewOnly = false;
+  document.getElementById('btnToggleAll').textContent = '🔓 显示全部答案';
+  document.getElementById('btnToggleAll').classList.remove('active');
+  document.getElementById('btnFilterReview').textContent = '📌 只看需复习';
+  document.getElementById('btnFilterReview').classList.remove('active');
+  renderAll();
+}
+
+function toggleResetMenu() {
+  document.getElementById('resetDrop').classList.toggle('show');
+}
+
+document.addEventListener('click', function(e) {
+  if (!e.target.closest('#resetWrap')) {
+    document.getElementById('resetDrop').classList.remove('show');
+  }
+});
 
 function filterReview() {
   filterReviewOnly = !filterReviewOnly;
