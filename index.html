@@ -3,7 +3,6 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="app-version" content="1">
 <meta name="color-scheme" content="dark light">
 <meta name="referrer" content="no-referrer">
 <meta name="theme-color" content="#0f172a" media="(prefers-color-scheme: dark)">
@@ -1507,21 +1506,24 @@ if ('serviceWorker' in navigator) {
     console.log('[SW] 注册失败:', err);
   });
 
-  // 定期检查更新（每2分钟，兼顾实时性和性能）
+  // 记录页面初始指纹：HTML长度 + CSS长度
+  var _pageFingerprint = document.documentElement.outerHTML.length + '|' +
+    document.querySelector('style').textContent.length;
+
+  // 定期检查更新（每2分钟）
   setInterval(function() {
     navigator.serviceWorker.getRegistration().then(function(reg) {
       if (reg) reg.update();
     });
-    // 版本探活：fetch 首页对比 version，版本号变了就弹遮罩
+    // 指纹探活：fetch 首页对比指纹，变了就弹遮罩
     fetch('./').then(function(r) { return r.text(); }).then(function(html) {
-      var m = html.match(/<meta name="app-version" content="(\d+)"/);
-      var cur = document.querySelector('meta[name="app-version"]');
-      if (m && cur && m[1] !== cur.content) {
+      var m = html.match(/<style>([\s\S]*?)<\/style>/);
+      var fp = html.length + '|' + (m ? m[1].length : 0);
+      if (fp !== _pageFingerprint) {
         showUpdateBanner();
       }
     }).catch(function(){});
   }, 2 * 60 * 1000);
 }
-</script>
 </body>
 </html>
