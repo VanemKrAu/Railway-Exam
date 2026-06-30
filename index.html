@@ -1339,6 +1339,7 @@ function resetAll() {
 }
 
 function restoreOrder() {
+  if (!confirm('确定要恢复当前课程的原始题目顺序吗？（不会清除已有标记）')) return;
   const course = courses[currentCourse];
   for (const [tk, origArr] of Object.entries(_coursesBackup[currentCourse])) {
     if (Array.isArray(origArr) && tk !== 'types') {
