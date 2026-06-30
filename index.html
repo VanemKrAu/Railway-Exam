@@ -1483,6 +1483,8 @@ if ('serviceWorker' in navigator) {
     navigator.serviceWorker.getRegistration().then(function(reg) {
       if (reg) reg.update();
     });
+    // 主动探活 HTML：SW 网络优先，拿到新版就弹遮罩
+    fetch('./').catch(function(){});
   }, 2 * 60 * 1000);
 }
 </script>
