@@ -1,4 +1,4 @@
-const CACHE_NAME = 'railway-exam-cache-v5';
+const CACHE_NAME = 'railway-exam-cache-v6';
 
 const CURRENT_VALID_ASSETS = [
     'index.html',
@@ -62,6 +62,35 @@ self.addEventListener('fetch', (e) => {
                 if (networkResponse && networkResponse.status === 200) {
                     const responseClone = networkResponse.clone();
 
+                    // HTML 请求：对比新旧内容，变了才通知
+                    if (isHTML) {
+                        caches.match(e.request).then((cachedResponse) => {
+                            if (!cachedResponse) {
+                                // 无缓存，首次加载，正常存入
+                                caches.open(CACHE_NAME).then((cache) => {
+                                    cache.put(e.request, networkResponse.clone());
+                                });
+                                return;
+                            }
+                            // 对比新旧内容
+                            Promise.all([
+                                cachedResponse.text(),
+                                responseClone.text()
+                            ]).then(([oldText, newText]) => {
+                                if (oldText !== newText) {
+                                    console.log('[SW] 检测到 HTML 内容更新');
+                                    // 通知所有页面
+                                    clients.matchAll({ type: 'window' }).then(clients => {
+                                        clients.forEach(client => {
+                                            client.postMessage({ type: 'SW_UPDATED' });
+                                        });
+                                    });
+                                }
+                            });
+                        });
+                    }
+
+                    // 存入缓存
                     caches.open(CACHE_NAME).then((cache) => {
                         cache.put(e.request, responseClone);
 
@@ -83,15 +112,6 @@ self.addEventListener('fetch', (e) => {
                             });
                         });
                     });
-
-                    // HTML 请求成功后通知页面"已是最新"
-                    if (isHTML) {
-                        clients.matchAll({ type: 'window' }).then(clients => {
-                            clients.forEach(client => {
-                                client.postMessage({ type: 'SW_UPDATED' });
-                            });
-                        });
-                    }
                 }
                 return networkResponse;
             })
