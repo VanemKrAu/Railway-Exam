@@ -1452,34 +1452,35 @@ if ('serviceWorker' in navigator) {
   navigator.serviceWorker.register('sw.js').then(function(reg) {
     console.log('[SW] 注册成功, scope:', reg.scope);
 
-    // 检测 SW 更新
+    // 接收 SW 发来的消息
+    navigator.serviceWorker.addEventListener('message', function(e) {
+      if (e.data && e.data.type === 'SW_UPDATED') {
+        console.log('[SW] 页面内容已更新');
+        showUpdateBanner();
+      }
+    });
+
+    // 检查 SW 自身是否有更新
     reg.addEventListener('updatefound', function() {
       var newWorker = reg.installing;
       if (!newWorker) return;
       newWorker.addEventListener('statechange', function() {
         if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
-          console.log('[SW] 检测到新版本');
+          console.log('[SW] 检测到新版本 SW');
           showUpdateBanner();
         }
       });
-    });
-
-    // 接收 SW 发来的消息
-    navigator.serviceWorker.addEventListener('message', function(e) {
-      if (e.data && e.data.type === 'SW_UPDATED') {
-        console.log('[SW] 页面已更新到最新版本');
-      }
     });
   }, function(err) {
     console.log('[SW] 注册失败:', err);
   });
 
-  // 定期检查更新（每30分钟）
+  // 定期检查更新（每2分钟，兼顾实时性和性能）
   setInterval(function() {
     navigator.serviceWorker.getRegistration().then(function(reg) {
       if (reg) reg.update();
     });
-  }, 30 * 60 * 1000);
+  }, 2 * 60 * 1000);
 }
 </script>
 </body>
